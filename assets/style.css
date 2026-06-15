@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+/* Base Styles */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+    color: #e0e0e0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.main-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+/* Glassmorphism Cards */
+.custom-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.custom-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+}
+
+.metric-card {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border-left: 4px solid #667eea;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    height: 100%;
+}
+
+.metric-card h3 {
+    margin-top: 0;
+    color: #a5b4fc;
+    font-size: 1.2rem;
+}
+
+/* Streamlit Overrides */
+.stButton > button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(118, 75, 162, 0.5);
+    color: white;
+}
+
+/* Dataframe Styling */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Progress Bar */
+.stProgress > div > div > div > div {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 24px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 50px;
+    white-space: pre-wrap;
+    background-color: transparent;
+    border-radius: 8px 8px 0 0;
+    color: #a0aec0;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: rgba(30, 41, 59, 0.8);
+    color: #ffffff;
+    border-bottom: 3px solid #667eea;
+}
+
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: #0f172a;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
