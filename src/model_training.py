@@ -80,6 +80,18 @@ def train_evaluate_models(
     if models is None:
         models = get_models()
 
+    # ── Guard: impute any residual NaN / Inf values ────────────────
+    # Feature engineering or scaling may introduce NaN (e.g. division
+    # by zero, missing source columns).  Fill with column medians so
+    # that estimators like LogisticRegression don't raise ValueError.
+    for _df in (X_train, X_test):
+        _df.replace([np.inf, -np.inf], np.nan, inplace=True)
+        if _df.isnull().values.any():
+            _df.fillna(_df.median(), inplace=True)
+        # Last-resort: if an entire column was NaN, median is NaN too
+        if _df.isnull().values.any():
+            _df.fillna(0, inplace=True)
+
     results = []
     trained_models = {}
     total = len(models)
