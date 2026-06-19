@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
-/* Base Styles */
+/* ══════════════════════════════════════════════════════════════
+   Base Styles
+   ══════════════════════════════════════════════════════════════ */
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
     color: #e0e0e0;
@@ -12,6 +14,9 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   Main Header (Gradient Text)
+   ══════════════════════════════════════════════════════════════ */
 .main-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
@@ -19,9 +24,23 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 3rem;
     font-weight: 700;
     margin-bottom: 2rem;
+    animation: fadeInDown 0.6s ease-out;
 }
 
-/* Glassmorphism Cards */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Glassmorphism Cards
+   ══════════════════════════════════════════════════════════════ */
 .custom-card {
     background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(10px);
@@ -39,6 +58,9 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   Metric Cards
+   ══════════════════════════════════════════════════════════════ */
 .metric-card {
     background: linear-gradient(145deg, #1e293b, #0f172a);
     border-left: 4px solid #667eea;
@@ -47,6 +69,12 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     height: 100%;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    border-left-color: #764ba2;
 }
 
 .metric-card h3 {
@@ -55,7 +83,15 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1.2rem;
 }
 
-/* Streamlit Overrides */
+.metric-card p {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Buttons
+   ══════════════════════════════════════════════════════════════ */
 .stButton > button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -72,21 +108,48 @@ h1, h2, h3, h4, h5, h6 {
     color: white;
 }
 
-/* Dataframe Styling */
+.stButton > button:active {
+    transform: scale(0.98);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Download Button
+   ══════════════════════════════════════════════════════════════ */
+.stDownloadButton > button {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.stDownloadButton > button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Dataframe Styling
+   ══════════════════════════════════════════════════════════════ */
 [data-testid="stDataFrame"] {
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Progress Bar */
+/* ══════════════════════════════════════════════════════════════
+   Progress Bar
+   ══════════════════════════════════════════════════════════════ */
 .stProgress > div > div > div > div {
     background: linear-gradient(90deg, #667eea, #764ba2);
 }
 
-/* Tabs */
+/* ══════════════════════════════════════════════════════════════
+   Tabs
+   ══════════════════════════════════════════════════════════════ */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 24px;
+    gap: 8px;
 }
 
 .stTabs [data-baseweb="tab"] {
@@ -95,6 +158,13 @@ h1, h2, h3, h4, h5, h6 {
     background-color: transparent;
     border-radius: 8px 8px 0 0;
     color: #a0aec0;
+    transition: all 0.2s ease;
+    padding: 0 16px;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    color: #e0e0e0;
+    background-color: rgba(30, 41, 59, 0.5);
 }
 
 .stTabs [aria-selected="true"] {
@@ -103,8 +173,58 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: 3px solid #667eea;
 }
 
-/* Sidebar styling */
+/* ══════════════════════════════════════════════════════════════
+   Sidebar
+   ══════════════════════════════════════════════════════════════ */
 [data-testid="stSidebar"] {
     background-color: #0f172a;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-testid="stSidebar"] .stRadio label {
+    color: #cbd5e1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Metrics
+   ══════════════════════════════════════════════════════════════ */
+[data-testid="stMetric"] {
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-testid="stMetricDelta"] svg {
+    display: inline;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Expander
+   ══════════════════════════════════════════════════════════════ */
+.streamlit-expanderHeader {
+    font-weight: 600;
+    color: #a5b4fc;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Form
+   ══════════════════════════════════════════════════════════════ */
+[data-testid="stForm"] {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    background: rgba(30, 41, 59, 0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Animations
+   ══════════════════════════════════════════════════════════════ */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.stMarkdown, .stDataFrame, .stPlotlyChart {
+    animation: fadeIn 0.4s ease-out;
 }

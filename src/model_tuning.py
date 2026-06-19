@@ -1,49 +1,96 @@
 """
-Hyperparameter tuning and model persistence.
+Hyperparameter tuning, model persistence, and pipeline management.
+
+Handles RandomizedSearchCV tuning of the best-performing model,
+saving/loading complete model bundles (model + preprocessor +
+metadata), and listing saved models.
 """
 import os
+from typing import Any, Dict, List, Optional, Tuple
+
 import joblib
 import pandas as pd
-from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import (
     accuracy_score,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
     roc_auc_score,
 )
-from config.settings import PARAM_GRIDS, TUNING_N_ITER, TUNING_CV, RANDOM_STATE, MODELS_DIR
+from sklearn.model_selection import RandomizedSearchCV
 
+from config.settings import (
+    MODELS_DIR,
+    PARAM_GRIDS,
+    RANDOM_STATE,
+    TUNING_CV,
+    TUNING_N_ITER,
+)
+from src.utils import setup_logging
+
+logger = setup_logging(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  Hyperparameter Tuning
+# ═══════════════════════════════════════════════════════════════════
 
 def tune_best_model(
     results_df: pd.DataFrame,
-    models_dict: dict,
-    X_train: pd.DataFrame,
+    models_dict: Dict[str, Any],
+    X_train: Any,
     y_train: pd.Series,
-    X_test: pd.DataFrame,
+    X_test: Any,
     y_test: pd.Series,
-) -> tuple:
+) -> Tuple[Any, str, Optional[Dict], Optional[Dict]]:
     """
-    Tune the top-performing model (by ROC-AUC) using RandomizedSearchCV.
+    Tune the top-performing model using RandomizedSearchCV.
+
+    The best model is identified from ``results_df`` (first row,
+    sorted by ROC-AUC).  If a param grid is defined in config,
+    RandomizedSearchCV is run; otherwise the base model is returned.
+
+    Parameters
+    ----------
+    results_df : pd.DataFrame
+        Model comparison results, sorted by ROC-AUC descending.
+    models_dict : dict
+        ``{name: fitted_estimator}``
+    X_train, y_train : array-like
+        Training data.
+    X_test, y_test : array-like
+        Test data for post-tuning evaluation.
 
     Returns
     -------
     best_model : estimator
+        The tuned (or original) best estimator.
     best_name : str
-    tuned_metrics : dict
-    best_params : dict
+        Name of the best model.
+    tuned_metrics : dict or None
+        Post-tuning evaluation metrics.
+    best_params : dict or None
+        Best hyper-parameters found.
     """
-    best_name = results_df.index[0]
+    best_name: str = results_df.index[0]
+    logger.info("Tuning best model: %s", best_name)
 
     if best_name not in PARAM_GRIDS:
+        logger.warning("No param grid defined for '%s'. Returning base model.", best_name)
         return models_dict[best_name], best_name, None, None
 
     param_grid = PARAM_GRIDS[best_name]
     base_model = models_dict[best_name]
 
+    # Strip 'classifier__' prefix for standalone model tuning
+    clean_grid = {}
+    for key, values in param_grid.items():
+        clean_key = key.replace("classifier__", "")
+        clean_grid[clean_key] = values
+
     search = RandomizedSearchCV(
         estimator=base_model,
-        param_distributions=param_grid,
+        param_distributions=clean_grid,
         n_iter=TUNING_N_ITER,
         cv=TUNING_CV,
         scoring="roc_auc",
@@ -51,13 +98,15 @@ def tune_best_model(
         n_jobs=-1,
         verbose=0,
     )
+
+    logger.info("Running RandomizedSearchCV (n_iter=%d, cv=%d)...", TUNING_N_ITER, TUNING_CV)
     search.fit(X_train, y_train)
 
     best_model = search.best_estimator_
     y_pred = best_model.predict(X_test)
     y_prob = best_model.predict_proba(X_test)[:, 1]
 
-    tuned_metrics = {
+    tuned_metrics: Dict[str, float] = {
         "Accuracy": round(accuracy_score(y_test, y_pred), 4),
         "Precision": round(precision_score(y_test, y_pred, zero_division=0), 4),
         "Recall": round(recall_score(y_test, y_pred, zero_division=0), 4),
@@ -66,46 +115,112 @@ def tune_best_model(
         "Best_CV_Score": round(search.best_score_, 4),
     }
 
+    logger.info(
+        "Tuning complete — ROC-AUC: %.4f (CV: %.4f)",
+        tuned_metrics["ROC-AUC"], tuned_metrics["Best_CV_Score"],
+    )
+
     return best_model, best_name, tuned_metrics, search.best_params_
 
 
-# ── Persistence ───────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════
+#  Model Persistence
+# ═══════════════════════════════════════════════════════════════════
 
-def save_model(model, scaler, feature_cols: list, name: str) -> str:
+def save_model(
+    model: Any,
+    scaler: Any,
+    feature_cols: List[str],
+    name: str,
+    preprocessor: Any = None,
+    metadata: Optional[Dict] = None,
+) -> str:
     """
-    Save model, scaler, and feature column list to the ``models/`` directory.
+    Save model bundle (model, scaler, feature columns, and metadata).
 
-    Returns the path to the saved file.
-    """
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    filepath = os.path.join(MODELS_DIR, f"{name}.joblib")
-    joblib.dump(
-        {"model": model, "scaler": scaler, "feature_cols": feature_cols},
-        filepath,
-    )
-    return filepath
-
-
-def load_model(name: str) -> dict:
-    """
-    Load a saved model bundle.
+    Parameters
+    ----------
+    model : estimator
+        Trained model.
+    scaler : transformer
+        Fitted scaler.
+    feature_cols : list of str
+        Feature names the model expects.
+    name : str
+        Model bundle name (used as filename).
+    preprocessor : Pipeline, optional
+        The full preprocessing pipeline.
+    metadata : dict, optional
+        Additional metadata (e.g. training metrics).
 
     Returns
     -------
-    dict with keys: model, scaler, feature_cols
+    str
+        Path to the saved ``.joblib`` file.
+    """
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    filepath = os.path.join(MODELS_DIR, f"{name}.joblib")
+
+    bundle = {
+        "model": model,
+        "scaler": scaler,
+        "feature_cols": feature_cols,
+        "preprocessor": preprocessor,
+        "metadata": metadata or {},
+    }
+
+    joblib.dump(bundle, filepath)
+    logger.info("Model saved to '%s'", filepath)
+
+    return filepath
+
+
+def load_model(name: str) -> Dict[str, Any]:
+    """
+    Load a saved model bundle.
+
+    Parameters
+    ----------
+    name : str
+        Model name (without ``.joblib`` extension).
+
+    Returns
+    -------
+    dict
+        Keys: ``model``, ``scaler``, ``feature_cols``,
+        ``preprocessor``, ``metadata``.
+
+    Raises
+    ------
+    FileNotFoundError
+        If no saved model is found.
     """
     filepath = os.path.join(MODELS_DIR, f"{name}.joblib")
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"No saved model found at '{filepath}'")
-    return joblib.load(filepath)
+
+    bundle = joblib.load(filepath)
+    logger.info("Model loaded from '%s'", filepath)
+
+    return bundle
 
 
-def list_saved_models() -> list[str]:
-    """Return names of all saved models (without extension)."""
+def list_saved_models() -> List[str]:
+    """
+    List names of all saved models (without file extension).
+
+    Returns
+    -------
+    list of str
+    """
     if not os.path.exists(MODELS_DIR):
         return []
-    return [
+
+    models = [
         f.replace(".joblib", "")
         for f in os.listdir(MODELS_DIR)
         if f.endswith(".joblib")
     ]
+
+    logger.debug("Found %d saved models.", len(models))
+    return models

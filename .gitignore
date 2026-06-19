@@ -1,0 +1,58 @@
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Virtual environments ─────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+
+# ── IDE / Editors ────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Jupyter Notebooks ────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── ML Artifacts ─────────────────────────────────────────────
+models/*.joblib
+models/*.pkl
+!models/.gitkeep
+
+# ── Data (keep structure, ignore large files) ────────────────
+data/raw/*.csv
+data/processed/*.csv
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# ── Reports (generated) ─────────────────────────────────────
+reports/figures/*.png
+reports/figures/*.jpg
+reports/figures/*.svg
+!reports/figures/.gitkeep
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Environment variables ────────────────────────────────────
+.env
+.env.local
+
+# ── OS ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
